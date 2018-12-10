@@ -228,6 +228,9 @@ void CKfkConsumer::getSett(string &brokerID, string &investorID, string &investo
     while(true){
         if(pTraderSpi->settFinished == true){
             _logger->info("本用户获取账单结束。");
+            free(pTraderSpi->_psett.sett);
+            pTraderSpi->_psett.sett = nullptr;
+            pTraderSpi->_psett.size = 0;
             break;
         }
         usleep(100000);

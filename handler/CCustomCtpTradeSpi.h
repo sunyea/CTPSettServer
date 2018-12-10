@@ -17,6 +17,11 @@
 
 using namespace std;
 
+typedef struct {
+    char *sett;
+    int size;
+} settString;
+
 class CCustomCtpTradeSpi: public CThostFtdcTraderSpi {
 public:
     ///初始化
@@ -47,6 +52,7 @@ public:
 public:
     bool loginFlag;     // 登陆成功的标识
     bool settFinished;  // 结算单完毕
+    settString _psett;
 
 private:
     string _brokerID;       //经纪商代码
@@ -58,7 +64,7 @@ private:
 
     CLogger *_logger = nullptr;
     char _error[64] = {0};
-    char _sett[102400] = {0};
+//    char _sett[102400] = {0};
 
     //会话参数
     TThostFtdcFrontIDType _trade_font_id;   //前置编号

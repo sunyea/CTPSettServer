@@ -21,6 +21,8 @@ void CCustomCtpTradeSpi::Init(CThostFtdcTraderApi* traderApi, string &brokerID, 
     _logger = logger;
     loginFlag = false;
     settFinished = false;
+    _psett.sett = (char*)calloc(1024, sizeof(char));
+    _psett.size = 1024;
 }
 
 //当建立通讯连接时
@@ -83,26 +85,38 @@ void CCustomCtpTradeSpi::OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout,
 void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *pSettlementInfo,
                                                 CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {
     if(pSettlementInfo) {
-        strcat(_sett, pSettlementInfo->Content);
+        int thisLength= strlen(pSettlementInfo->Content);
+        int currentLength = strlen(_psett.sett);
+        int currentSize = _psett.size;
+        if (thisLength+currentLength > _psett.size){
+            int newSize = _psett.size+thisLength;
+            _psett.sett = (char*)realloc(_psett.sett, newSize);
+            _psett.size = newSize;
+        }
+        strcat(_psett.sett, pSettlementInfo->Content);
+        int backLength = strlen(_psett.sett);
+        printf("本次大小：%d, 之前大小：%d, 缓冲区长度：%d, 拼接后大小：%d, 拼接后长度：%d\n", thisLength, currentLength, currentSize, _psett.size, backLength);
         if (bIsLast){
-//            _logger->info(_sett);
             Sett sett;
             sett.sessionid = _sessionid;
             sett.uid = _uid;
-            sett.sett = new char[102400];
-            strcpy(sett.sett, _sett);
-//            printf("sett_size:%d\n", strlen(_sett));
+            sett.sett = new char[_psett.size];
+            strcpy(sett.sett, _psett.sett);
             CMultiThread::_mutex.lock();
             CMultiThread::_Queue.push_back(sett);
             CMultiThread::_mutex.unlock();
-            memset(_sett, 0, sizeof(_sett));
+            _psett.sett = (char*)realloc(_psett.sett, 1024);
+            memset(_psett.sett, 0, 1024);
+            _psett.size = 1024;
             sleep(1);
             reqSettlement();
         }
     }else{
 //        _logger->error("没有账单");
         sleep(1);
-        memset(_sett, 0, sizeof(_sett));
+        _psett.sett = (char*)realloc(_psett.sett, 1024);
+        memset(_psett.sett, 0, 1024);
+        _psett.size = 1024;
         reqSettlement();
     }
 
