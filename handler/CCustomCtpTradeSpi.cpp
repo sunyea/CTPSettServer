@@ -95,7 +95,7 @@ void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *p
         }
         strcat(_psett.sett, pSettlementInfo->Content);
         int backLength = strlen(_psett.sett);
-        printf("本次大小：%d, 之前大小：%d, 缓冲区长度：%d, 拼接后大小：%d, 拼接后长度：%d\n", thisLength, currentLength, currentSize, _psett.size, backLength);
+//        printf("本次大小：%d, 之前大小：%d, 缓冲区长度：%d, 拼接后大小：%d, 拼接后长度：%d\n", thisLength, currentLength, currentSize, _psett.size, backLength);
         if (bIsLast){
             Sett sett;
             sett.sessionid = _sessionid;
