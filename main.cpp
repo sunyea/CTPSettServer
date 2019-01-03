@@ -1,5 +1,6 @@
 #include <iostream>
 #include <unistd.h>
+#include <sys/wait.h>
 #include "MainServer.h"
 
 #define SERVER_DEBUG
@@ -16,38 +17,64 @@
 
 #endif
 
-
-int main() {
-    CLogger *logger = nullptr;
-    logger = new CLogger("SettServer", "log.properties");
-
-    MainServer *server = nullptr;
-    server = new MainServer(KAFKA_HOSTS, FRONT_ADDR, logger);
+int main(){
 #ifndef SERVER_DEBUG
     daemon(0, 0);
 #endif
-
-    int ret = server->init();
-    if (ret != 0){
-        delete(server);
-        delete(logger);
-        exit(-1);
-    }
-
-    while(!ret){
-        try{
+    CLogger *logger = nullptr;
+    logger = new CLogger("SettServer", "log.properties");
+    while(true){
+        pid_t pid = fork();
+        if (pid > 0){
+            wait(NULL);
+            logger->error("账单获取服务异常退出，主服务重启账单获取服务\n");
+            sleep(1);
+        }else if (pid == 0) {
+            MainServer *server = nullptr;
+            server = new MainServer(KAFKA_HOSTS, FRONT_ADDR, logger);
+            server->init();
             server->run();
             server->destory();
-            ret = server->init();
-        }catch (...){
-            logger->error("主服务器出现异常退出，1秒后重新启动");
-            server->destory();
-            sleep(1);
-            ret = server->init();
+            exit(0);
+        }else{
+            logger->error("创建子进程失败\n");
+            return -1;
         }
     }
-    server->destory();
-    delete(server);
-    delete(logger);
-    return 0;
 }
+
+
+//int main01() {
+//    CLogger *logger = nullptr;
+//    logger = new CLogger("SettServer", "log.properties");
+//
+//    MainServer *server = nullptr;
+//    server = new MainServer(KAFKA_HOSTS, FRONT_ADDR, logger);
+//#ifndef SERVER_DEBUG
+//    daemon(0, 0);
+//#endif
+//
+//    int ret = server->init();
+//    if (ret != 0){
+//        delete(server);
+//        delete(logger);
+//        exit(-1);
+//    }
+//
+//    while(!ret){
+//        try{
+//            server->run();
+//            server->destory();
+//            ret = server->init();
+//        }catch (...){
+//            logger->error("主服务器出现异常退出，1秒后重新启动");
+//            server->destory();
+//            sleep(1);
+//            ret = server->init();
+//        }
+//    }
+//    server->destory();
+//    delete(server);
+//    delete(logger);
+//    return 0;
+//}

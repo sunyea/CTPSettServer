@@ -60,7 +60,12 @@ void CMultiThread::putToKafka(string topic, void *mThread) {
                 string s_send = cJSON_Print(_root);
                 cJSON_Delete(_root);
                 producer->PushData((void *)s_send.c_str(), s_send.length());
-                delete(item.sett);
+//                modify by lp @ 2018-12-29
+                if(item.sett != nullptr) {
+                    free(item.sett);
+                    item.sett = nullptr;
+                }
+//                modify end.
             }
         }
     }else{

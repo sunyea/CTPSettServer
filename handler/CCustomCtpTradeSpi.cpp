@@ -95,27 +95,39 @@ void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *p
         }
         strcat(_psett.sett, pSettlementInfo->Content);
         int backLength = strlen(_psett.sett);
-//        printf("本次大小：%d, 之前大小：%d, 缓冲区长度：%d, 拼接后大小：%d, 拼接后长度：%d\n", thisLength, currentLength, currentSize, _psett.size, backLength);
         if (bIsLast){
             Sett sett;
             sett.sessionid = _sessionid;
             sett.uid = _uid;
-            sett.sett = new char[_psett.size];
+//            modify by lp @ 2018-12-29
+//            sett.sett = new char[_psett.size];
+            sett.sett = nullptr;
+            sett.sett = (char*)calloc(_psett.size, sizeof(char));
+//            modify end.
             strcpy(sett.sett, _psett.sett);
             CMultiThread::_mutex.lock();
             CMultiThread::_Queue.push_back(sett);
             CMultiThread::_mutex.unlock();
-            _psett.sett = (char*)realloc(_psett.sett, 1024);
-            memset(_psett.sett, 0, 1024);
+            _logger->debug("成功获取一个账单，继续请求下一个");
+//            modify by lp@2018-12-29
+//            _psett.sett = (char*)realloc(_psett.sett, 1024);
+//            memset(_psett.sett, 0, 1024);
+            free(_psett.sett);
+            _psett.sett = (char*)calloc(1024, sizeof(char));
+//            modify end.
             _psett.size = 1024;
             sleep(1);
             reqSettlement();
         }
     }else{
-//        _logger->error("没有账单");
+        _logger->error("信息指针为空，继续请求下一个");
         sleep(1);
-        _psett.sett = (char*)realloc(_psett.sett, 1024);
-        memset(_psett.sett, 0, 1024);
+//        modify by lp@2018-12-29
+//        _psett.sett = (char*)realloc(_psett.sett, 1024);
+//        memset(_psett.sett, 0, 1024);
+        free(_psett.sett);
+        _psett.sett = (char*)calloc(1024, sizeof(char));
+//        modify end.
         _psett.size = 1024;
         reqSettlement();
     }
@@ -175,8 +187,12 @@ void CCustomCtpTradeSpi::reqSettlement() {
         strcpy(settReq.TradingDay, item.c_str());
         int rt = _traderApi->ReqQrySettlementInfo(&settReq, ++requestID);
         if (!rt) {
-//            _logger->info("已发送结算结果请求");
-            _tradingDay.pop_back();
+            _logger->info("已发送结算结果请求");
+            try {
+                _tradingDay.pop_back();
+            }catch (...){
+                _logger->error("交易日队列删除一个日期时出错");
+            }
         } else {
             _logger->error("发送结算结果请求失败");
         }
