@@ -39,9 +39,9 @@ void CCustomCtpTradeSpi::OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLog
         _logger->info("CTP账户登录成功。");
         loginFlag = true;
         //保存会话参数
-        _trade_font_id = pRspUserLogin->FrontID;
-        _session_id = pRspUserLogin->SessionID;
-        strcpy(_order_ref, pRspUserLogin->MaxOrderRef);
+//        _trade_font_id = pRspUserLogin->FrontID;
+//        _session_id = pRspUserLogin->SessionID;
+//        strcpy(_order_ref, pRspUserLogin->MaxOrderRef);
 
         //请求投资者结算结果
         reqSettlement();
@@ -138,9 +138,10 @@ void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *p
 bool CCustomCtpTradeSpi::isErrorRspInfo(CThostFtdcRspInfoField *pRspInfo) {
     bool bResult = pRspInfo && (pRspInfo->ErrorID != 0);
     if (bResult){
-        memset(_error, 0, sizeof(_error));
-        sprintf(_error, "返回错误，错误编号：%d，错误信息：%s", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
-        _logger->error(_error);
+//        memset(_error, 0, sizeof(_error));
+//        sprintf(_error, "返回错误，错误编号：%d，错误信息：%s", pRspInfo->ErrorID, pRspInfo->ErrorMsg);
+//        _logger->error(_error);
+        _logger->error(pRspInfo->ErrorMsg);
     }
     return bResult;
 }
