@@ -147,18 +147,26 @@ void CKfkConsumer::consumer(RdKafka::Message *msg) {
 
             cJSON *get_root, *action, *sessionid, *data;
             get_root = cJSON_Parse(static_cast<char*>(msg->payload()));
+            if (get_root == nullptr){
+                _logger->error("获取到的信息不是正确的JSON串结构");
+                break;
+            }
             action = cJSON_GetObjectItem(get_root, "action");
             sessionid = cJSON_GetObjectItem(get_root, "sessionid");
             data = cJSON_GetObjectItem(get_root, "data");
             if(action and sessionid and data){
                 cJSON *data_root, *uid, *brokerid, *inverstorid, *investopwd, *tradingday;
-                if(data->valuestring == NULL){
+                if(data->valuestring == nullptr){
                     data_root = data;
                 }else{
                     data_root = cJSON_Parse(data->valuestring);
                 }
                 uid = cJSON_GetObjectItem(data_root, "uid");
                 brokerid = cJSON_GetObjectItem(data_root, "brokerid");
+                if (brokerid == nullptr){
+                    _logger->error("JSON格式不正确，没有brokerid数据");
+                    break;
+                }
                 inverstorid = cJSON_GetObjectItem(data_root, "inverstorid");
                 investopwd = cJSON_GetObjectItem(data_root, "investopwd");
                 tradingday = cJSON_GetObjectItem(data_root, "tradingday");
@@ -170,6 +178,10 @@ void CKfkConsumer::consumer(RdKafka::Message *msg) {
                     tradingdays.push_back(value);
                 }
                 string s_brokerid = brokerid->valuestring;
+                if (s_brokerid != "9999"){
+                    _logger->error("brokerid不是CTP的正确ID");
+                    break;
+                }
                 string s_inverstorid = inverstorid->valuestring;
                 string s_investopwd = investopwd->valuestring;
                 string s_sessionid = sessionid->valuestring;
@@ -177,8 +189,6 @@ void CKfkConsumer::consumer(RdKafka::Message *msg) {
                 if(uid){
                     s_uid = uid->valuestring;
                 }
-//                fprintf(stderr, "brokerid:%s, id:%s, pwd:%s, uid:%s, sessionid:%s\n", s_brokerid.c_str(),
-//                        s_inverstorid.c_str(), s_investopwd.c_str(), s_uid.c_str(), s_sessionid.c_str());
                 getSett(s_brokerid, s_inverstorid, s_investopwd, tradingdays, s_sessionid, s_uid);
             }
             break;

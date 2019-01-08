@@ -108,7 +108,7 @@ void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *p
             CMultiThread::_mutex.lock();
             CMultiThread::_Queue.push_back(sett);
             CMultiThread::_mutex.unlock();
-            _logger->debug("成功获取一个账单，继续请求下一个");
+//            _logger->debug("成功获取一个账单，继续请求下一个");
 //            modify by lp@2018-12-29
 //            _psett.sett = (char*)realloc(_psett.sett, 1024);
 //            memset(_psett.sett, 0, 1024);
@@ -120,7 +120,7 @@ void CCustomCtpTradeSpi::OnRspQrySettlementInfo(CThostFtdcSettlementInfoField *p
             reqSettlement();
         }
     }else{
-        _logger->error("信息指针为空，继续请求下一个");
+//        _logger->error("信息指针为空，继续请求下一个");
         sleep(1);
 //        modify by lp@2018-12-29
 //        _psett.sett = (char*)realloc(_psett.sett, 1024);
@@ -188,7 +188,7 @@ void CCustomCtpTradeSpi::reqSettlement() {
         strcpy(settReq.TradingDay, item.c_str());
         int rt = _traderApi->ReqQrySettlementInfo(&settReq, ++requestID);
         if (!rt) {
-            _logger->info("已发送结算结果请求");
+//            _logger->info("已发送结算结果请求");
             try {
                 _tradingDay.pop_back();
             }catch (...){
