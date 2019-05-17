@@ -12,9 +12,9 @@
 #include "kafka/CKfkConsumer.h"
 #include "kafka/CKfkProducer.h"
 
-#define TOPIC_IN "tp.js.sett"
-#define TOPIC_OUT "tp.js"
-#define GROUP_ID "gp.js.sett"
+#define TOPIC_IN "tp_js_sett"
+#define TOPIC_OUT "tp_js"
+#define GROUP_ID "gp_js_sett"
 
 using namespace std;
 
